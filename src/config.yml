@@ -5,5 +5,10 @@ robot:
   max_speed: 0.22
   max_steering: 0.5
   differential:
+<<<<<<< HEAD
     left: 1.00
     right: 1.00
+=======
+    left: 1.0
+    right: 1.0
+>>>>>>> 0bb363226abf325f4c4d0d4d0b952361ab95891d
