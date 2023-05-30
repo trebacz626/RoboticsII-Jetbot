@@ -1,16 +1,17 @@
 from torch import nn
 import torch
 import pytorch_lightning as pl
-from simple_cnn import SimpleCNN
+from model.simple_cnn import SimpleCNN
 
 
 class JetBotLightning(pl.LightningModule):
-    def __init__(self, model = SimpleCNN()):
+    def __init__(self, model = SimpleCNN(), lr=1e-3):
         super().__init__()
         self.model = model
         self.criterion = nn.MSELoss()
         self.mse = nn.MSELoss()
         self.mae = nn.L1Loss()
+        self.lr = lr
 
     def forward(self, x):
         return self.model(x)
@@ -34,4 +35,4 @@ class JetBotLightning(pl.LightningModule):
         return loss
 
     def configure_optimizers(self):
-        return torch.optim.Adam(self.parameters(), lr=1e-3)
+        return torch.optim.Adam(self.parameters(), lr=self.lr)
