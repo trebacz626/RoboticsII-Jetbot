@@ -23,6 +23,8 @@ class LineFollowingNet(pl.LightningModule):
         self.model = TurnNetwork(num_outputs)
         self.criterion = torch.nn.MSELoss()
         self.lr = lr
+        self.mae = torch.nn.L1Loss()
+        self.mse = torch.nn.MSELoss()
 
     def forward(self, x):
         return self.model(x)
@@ -38,7 +40,11 @@ class LineFollowingNet(pl.LightningModule):
         x, y = batch
         y_hat = self.model(x)
         loss = self.criterion(y_hat, y)
+        mae = (self.mae(y_hat[0], y[0]), self.mae(y_hat[1], y[1]))
+        mse = (self.mse(y_hat[0], y[0]), self.mse(y_hat[1], y[1]))
         self.log('val_loss', loss)
+        self.log('train_mae', mae)
+        self.log('train_mse', mse)
 
     def configure_optimizers(self):
         return torch.optim.Adam(self.parameters(), lr=self.lr)

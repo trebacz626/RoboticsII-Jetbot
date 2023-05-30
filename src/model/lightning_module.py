@@ -4,7 +4,7 @@ import pytorch_lightning as pl
 from simple_cnn import SimpleCNN
 
 
-class SimpleCNNLightning(pl.LightningModule):
+class JetBotLightning(pl.LightningModule):
     def __init__(self, model = SimpleCNN()):
         super().__init__()
         self.model = model
