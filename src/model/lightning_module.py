@@ -5,7 +5,7 @@ from model.simple_cnn import SimpleCNN
 
 
 class JetBotLightning(pl.LightningModule):
-    def __init__(self, model = SimpleCNN(), lr=1e-3):
+    def __init__(self, model=SimpleCNN(), lr=1e-3):
         super().__init__()
         self.model = model
         self.criterion = nn.MSELoss()
