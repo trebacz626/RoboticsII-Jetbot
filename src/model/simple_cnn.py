@@ -2,6 +2,7 @@ from typing import Any
 import torch
 import torch.nn as nn
 import torch.nn.functional as F
+import pytorch_lightning as pl
 
 class SimpleCNN(nn.Module):
     def __init__(self):
@@ -22,12 +23,15 @@ class SimpleCNN(nn.Module):
         x = self.fc3(x)
         return x
 
-#to onnx with imput 224x224
-dummy_input = torch.randn(1, 3, 64, 64)
+def onnx_export():
+    #to onnx with imput 224x224
+    dummy_input = torch.randn(1, 3, 64, 64)
 
-model = SimpleCNN()
-# predict dummy input
-output = model(dummy_input)
-print(output)
+    model = SimpleCNN()
+    # predict dummy input
+    output = model(dummy_input)
+    print(output)
 
-torch.onnx.export(model, dummy_input, "random_not_trained_cnn.onnx", verbose=True)
+    torch.onnx.export(model, dummy_input, "random_not_trained_cnn.onnx", verbose=True)
+
+
