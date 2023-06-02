@@ -1,7 +1,6 @@
 import pytorch_lightning as pl
 from pytorch_lightning.callbacks import ModelCheckpoint, LearningRateMonitor
 from pytorch_lightning.loggers import WandbLogger
-import timm
 import torch
 import torchvision
 from torchvision.transforms import ToTensor, Resize
@@ -12,33 +11,29 @@ import argparse
 
 from src.model.lightning_module import JetBotLightning
 
-parser = argparse.ArgumentParser(description='Process some integers.')
-parser.add_argument('--model', type=str, default="SimpleCNN", help='model name')
+parser = argparse.ArgumentParser(description='Process model arguments.')
+parser.add_argument('--model', type=str,
+                    default="SimpleCNN", help='model name')
 parser.add_argument('--batch_size', type=int, default=32, help='batch size')
 parser.add_argument('--epochs', type=int, default=10, help='epochs')
 parser.add_argument('--lr', type=float, default=1e-3, help='learning rate')
-parser.add_argument('--gpus', type=int, default=1, help='gpus')
-parser.add_argument('--precision', type=int, default=16, help='precision')
-parser.add_argument('--num_workers', type=int, default=4, help='num_workers')
-parser.add_argument('--dataset', type=str, default='cifar10', help='dataset')
-parser.add_argument('--data_dir', type=str, default='data', help='data_dir')
-parser.add_argument('--output_dir', type=str,
-                    default='output', help='output_dir')
 parser.add_argument('--seed', type=int, default=42, help='seed')
 parser.add_argument('--onnx', type=bool, default=False, help='onnx')
+
 
 def to_onnx(model: JetBotLightning):
     dummy_input = torch.randn(1, 3, 64, 64)
     # predict dummy input
     output = model.backbone(dummy_input)
-    torch.onnx.export(model.backbone, dummy_input, f"{args.model}.onnx", verbose=True)
+    torch.onnx.export(model.backbone, dummy_input,
+                      f"{args.model}.onnx", verbose=True)
 
 
 def get_model(backbone_name):
     if backbone_name == "SimpleCNN":
         backbone = SimpleCNN()
     else:
-        backbone = timm.create_model('resnet18', pretrained=True)
+        raise NotImplementedError(f"Backbone {backbone_name} not implemented")
     return JetBotLightning(backbone)
 
 
@@ -48,14 +43,16 @@ if __name__ == "__main__":
     train_run_ids = ["1652875851.3497071", "1652875901.3107166", "1652876013.741493", "1652876206.2541456",
                      "1652876485.8123376", "1652959186.4507334", "1652959347.972946", "1653042695.4914637",
                      "1653042775.5213027", "1653043202.5073502"]
-    vaild_run_ids = ["1653043345.3415065", "1653043428.8546412", "1653043549.5187616"]
+    vaild_run_ids = ["1653043345.3415065",
+                     "1653043428.8546412", "1653043549.5187616"]
 
-    train_transformations = torchvision.transforms.Compose([Resize((64, 64)), ToTensor()])
-    valid_transformations = torchvision.transforms.Compose([Resize((64, 64)), ToTensor()])
+    train_transformations = torchvision.transforms.Compose(
+        [Resize((64, 64)), ToTensor()])
+    valid_transformations = torchvision.transforms.Compose(
+        [Resize((64, 64)), ToTensor()])
 
     data_module = LineFollowingDataModule("./dataset", train_run_ids, vaild_run_ids, train_transformations,
                                           valid_transformations, batch_size=args.batch_size, num_workers=6)
-    datamodule = LineFollowingDataModule
 
     model = get_model(args.model)
     trainer = pl.Trainer(gpus=args.gpus, precision=args.precision,
