@@ -1,4 +1,11 @@
 # Robotics II - the Jetbot track follower
+
+To see how your model is performing you can run script `test_on_video.py`. Give it a path to csv file and a stream flag. If stream is set you will see video in real time, otherwise you just have `avi` file generated. Video is saved to `videos` folder. Example:
+```shell
+python test_on_video.py -f put_jetbot_dataset/dataset/1652875851.3497071.csv -s
+```
+Since the module is not installable you must run the script from `src` folder.
+
 ## Poznan University of Technology, Institute of Robotics and Machine Intelligence
 
 The project repository is a part of the [Robotics II](https://jug.dpieczynski.pl/lab-roboticsII/) subject which is a part of the Artificial Intelligence course.
@@ -55,11 +62,11 @@ The dataset consists of .csv files containing image name, forward signal, and le
 
 Here are some examples from the dataset:
 
-|    **Kind**     | **Input image**   | **Forward signal**  | **Left signal**   |
-|:-------------:  |:---------------:  |:------------------: |:---------------:  |
-| Forward drive   | ![forward image](README_files/0158.jpg) | 0.9921875 | 0.0 |
-|   Left curve    | ![left curve](README_files/0180.jpg) | 0.453125 | 0.6328125 |
-|  Right curve    | ![right curve](README_files/0219.jpg)  | 0.85 | -1.0  |
+|   **Kind**    |             **Input image**             | **Forward signal** | **Left signal** |
+| :-----------: | :-------------------------------------: | :----------------: | :-------------: |
+| Forward drive | ![forward image](README_files/0158.jpg) |     0.9921875      |       0.0       |
+|  Left curve   |  ![left curve](README_files/0180.jpg)   |      0.453125      |    0.6328125    |
+|  Right curve  |  ![right curve](README_files/0219.jpg)  |        0.85        |      -1.0       |
 
 ## Scripts
 
@@ -80,12 +87,12 @@ Here are some examples from the dataset:
   ```
   For each vehicle, we calculated these values empirically:
 
-    | **Vehicle**   | **robot.differential.left**   | **robot.differential.right**  |
-    |:-----------:  |:---------------------------:  |:----------------------------: |
-    |  Jetbot 01    |             1.0               |              0.90             |
-    |  Jetbot 02    |             0.85              |              1.00             |
-    |  Jetbot 03    |             1.00              |              1.00             |
-    |  Jetbot 04    |             1.00              |              1.00             |
+    | **Vehicle** | **robot.differential.left** | **robot.differential.right** |
+    | :---------: | :-------------------------: | :--------------------------: |
+    |  Jetbot 01  |             1.0             |             0.90             |
+    |  Jetbot 02  |            0.85             |             1.00             |
+    |  Jetbot 03  |            1.00             |             1.00             |
+    |  Jetbot 04  |            1.00             |             1.00             |
     
   When your deep learning model is ready on board of JetBot, specify the **absolute** path to it.
    ```yaml
