@@ -24,7 +24,8 @@ def main(csv_path: str, stream: bool):
                             cv2.VideoWriter_fourcc('M','J','P','G'), 15, (224, 224))
 
     df = pd.read_csv(csv_path, names=["id", "forward", "left"])
-
+    df['predicted_forward'] = 0
+    df['predicted_left'] = 0
     folder = Path(csv_path[:-4])
     
     ai = AI(config=config)
@@ -34,6 +35,8 @@ def main(csv_path: str, stream: bool):
         img_path = folder / f'{img_id:04}.jpg'
         img = cv2.imread(str(img_path))
         forward, left = ai.predict(img)
+        df.loc[index, 'predicted_forward'] = forward
+        df.loc[index, 'predicted_left'] = left
         
         text1 = f"True: {true_forward:.5f}, {true_left:.5f}"
         text2 = f"Pred: {forward:.5f}, {left:.5f}"
@@ -49,6 +52,9 @@ def main(csv_path: str, stream: bool):
         
             if key == ord('q'):
                 break
+
+    filename = csv_path.split('/')[-1][:-4]
+    df.to_csv('../predictions/' + filename+'_predicted.csv', index=False)
         
 
 

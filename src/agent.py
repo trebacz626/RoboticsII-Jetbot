@@ -38,10 +38,9 @@ class AI:
         
         detections = self.sess.run([self.output_name], {self.input_name: inputs})[0]
         outputs = self.postprocess(detections)
-        #print(outputs.shape)
         assert outputs.dtype == np.float32
         assert outputs.shape == (2,)
-        assert outputs.max() < 1.0
-        assert outputs.min() > -1.0
+        assert outputs.max() <= 1.0
+        assert outputs.min() >= -1.0
         #print(outputs)
         return outputs
