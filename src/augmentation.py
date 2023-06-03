@@ -36,12 +36,12 @@ class DataAugmentation(nn.Module):
 
         elif type == 'extreme':
             self.transforms = nn.Sequential(
-                ColorJiggle(p = 0.3),
-                RandomBrightness(p = 0.3),
-                RandomContrast(p = 0.3),
-                RandomBoxBlur(p = 0.3),
-                RandomGamma(p = 0.3),
-                RandomMotionBlur((2,3), 0.1, 0.5, p = 0.3),
+                ColorJiggle(brightness= 0.5,contrast= 0.5,saturation= 0.5,hue= 0.5, p = 0.3),
+                # RandomBrightness(p = 0.3),
+                # RandomContrast(p = 0.3),
+                # RandomBoxBlur(p = 0.3),
+                # RandomGamma(p = 0.3),
+                RandomMotionBlur((2,3), 0.1, 0.5, p = 1),
                 RandomSaturation(p = 0.3),
                 RandomGaussianNoise(p = 0.3)
         )
