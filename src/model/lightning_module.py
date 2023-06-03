@@ -5,13 +5,15 @@ from src.model.simple_cnn import SimpleCNN
 
 
 class JetBotLightning(pl.LightningModule):
-    def __init__(self, backbone=SimpleCNN(), lr=1e-3):
+    def __init__(self, backbone=SimpleCNN(), lr=1e-3, max_epochs=20, lr_cycles=1):
         super().__init__()
         self.backbone = backbone
         self.criterion = nn.MSELoss()
         self.mse = nn.MSELoss()
         self.mae = nn.L1Loss()
         self.lr = lr
+        self.max_epochs = max_epochs
+        self.lr_cycles = lr_cycles
 
     def forward(self, x):
         return self.backbone(x)
@@ -50,4 +52,9 @@ class JetBotLightning(pl.LightningModule):
         return loss
 
     def configure_optimizers(self):
-        return torch.optim.Adam(self.parameters(), lr=self.lr)
+        optimizer = torch.optim.Adam(self.parameters(), lr=self.lr)
+        scheduler = torch.optim.lr_scheduler.CosineAnnealingWarmRestarts(optimizer,  int(self.max_epochs//self.lr_cycles))
+        return {
+            'optimizer': optimizer,
+            'lr_scheduler': scheduler,
+        }

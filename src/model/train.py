@@ -3,7 +3,8 @@ from pytorch_lightning.callbacks import ModelCheckpoint, LearningRateMonitor
 from pytorch_lightning.loggers import WandbLogger
 import torch
 import torchvision
-from torchvision.transforms import ToTensor, Resize
+from torchvision.transforms import ToTensor, Resize, RandomRotation, RandomPerspective, ColorJitter, RandomApply, \
+    GaussianBlur, RandomAdjustSharpness, RandomAutocontrast, RandomEqualize
 
 from src.data.datamodule import LineFollowingDataModule
 from src.model.simple_cnn import SimpleCNN
@@ -19,6 +20,10 @@ parser.add_argument('--epochs', type=int, default=10, help='epochs')
 parser.add_argument('--lr', type=float, default=1e-3, help='learning rate')
 parser.add_argument('--seed', type=int, default=42, help='seed')
 parser.add_argument('--onnx', type=bool, default=False, help='onnx')
+parser.add_argument('--resolution', type=int, default=64, help='resolution')
+parser.add_argument('--precision', type=int, default=16, help='precision')
+parser.add_argument('--lr_cycles', type=float, default=1, help='precision')
+parser.add_argument('--transformation_probability', type=float, default=0.5, help='precision')
 
 
 def to_onnx(model: JetBotLightning):
@@ -34,8 +39,7 @@ def get_model(backbone_name):
         backbone = SimpleCNN()
     else:
         raise NotImplementedError(f"Backbone {backbone_name} not implemented")
-    return JetBotLightning(backbone)
-
+    return JetBotLightning(backbone, lr=args.lr, max_epochs=args.epochs, lr_cycles=args.lr_cycles)
 
 if __name__ == "__main__":
     args = parser.parse_args()
@@ -47,15 +51,24 @@ if __name__ == "__main__":
                      "1653043428.8546412", "1653043549.5187616"]
 
     train_transformations = torchvision.transforms.Compose(
-        [Resize((64, 64)), ToTensor()])
+        [Resize((args.resolution, args.resolution)),
+         RandomRotation((-4,4)),
+         RandomPerspective(0.05, args.transformation_probability),
+         RandomApply([ColorJitter(brightness=0.1, contrast=0.1, saturation=0.1, hue=0.1)], p=args.transformation_probability),
+         RandomApply([GaussianBlur(3, sigma=(0.1, 2.0))], p=args.transformation_probability),
+         RandomAdjustSharpness(0.1, p=args.transformation_probability),
+         RandomAutocontrast(p=args.transformation_probability),
+         RandomEqualize(p=args.transformation_probability),
+         ToTensor()])
     valid_transformations = torchvision.transforms.Compose(
-        [Resize((64, 64)), ToTensor()])
+        [Resize((args.resolution, args.resolution)), ToTensor()])
 
     data_module = LineFollowingDataModule("./dataset", train_run_ids, vaild_run_ids, train_transformations,
                                           valid_transformations, batch_size=args.batch_size, num_workers=6)
 
     model = get_model(args.model)
-    trainer = pl.Trainer(gpus=args.gpus, precision=args.precision,
+    trainer = pl.Trainer(accelerator="auto",
+                         precision=args.precision,
                          max_epochs=args.epochs, num_sanity_val_steps=2,
                          auto_lr_find=True, logger=WandbLogger(project="jetbot", name=args.model, config=args),
                          log_every_n_steps=1,
