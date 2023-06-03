@@ -1,58 +1,69 @@
-from kornia.augmentation import ColorJiggle, RandomBrightness, RandomContrast, RandomBoxBlur, RandomGamma, RandomMotionBlur, RandomSaturation, RandomGaussianNoise, Normalize
-import torch.nn as nn
-import torch
-from torch import Tensor, std, mean
-from model import simple_cnn
 import cv2
+import torch
+import torch.nn as nn
 from kornia import tensor_to_image
+from kornia.augmentation import (
+    ColorJiggle,
+    Normalize,
+    RandomBoxBlur,
+    RandomBrightness,
+    RandomContrast,
+    RandomGamma,
+    RandomGaussianNoise,
+    RandomMotionBlur,
+    RandomSaturation,
+)
+from torch import Tensor, mean, std
+
+from model import simple_cnn
 
 
 class DataAugmentation(nn.Module):
     """Module to perform data augmentation using Kornia on torch tensors."""
 
-    def __init__(self, type: str = 'medium') -> None:
+    def __init__(self, type: str = "medium") -> None:
         super().__init__()
-        
 
-        if type == 'light':
+        if type == "light":
             self.transforms = nn.Sequential(
-                ColorJiggle(p = 0.05),
-                RandomBrightness(p = 0.05, brightness=(0.2, 0.4)),
-                RandomMotionBlur((2,3), 0.1, 0.5, p = 0.05),
-                RandomSaturation(p = 0.05),
+                ColorJiggle(p=0.05),
+                RandomBrightness(p=0.05, brightness=(0.2, 0.4)),
+                RandomMotionBlur((2, 3), 0.1, 0.5, p=0.05),
+                RandomSaturation(p=0.05),
             )
 
-        elif type == 'medium':
+        elif type == "medium":
             self.transforms = nn.Sequential(
-                ColorJiggle(p = 0.1),
-                RandomBrightness(p = 0.1, brightness=(0.2, 0.4)),
-                RandomContrast(p = 0.1),
-                RandomBoxBlur(p = 0.1),
-                RandomGamma(p = 0.1),
-                RandomMotionBlur((2,3), 0.1, 0.5, p = 0.1),
-                RandomSaturation(p = 0.1),
-                RandomGaussianNoise(p = 0.1)
+                ColorJiggle(p=0.1),
+                RandomBrightness(p=0.1, brightness=(0.2, 0.4)),
+                RandomContrast(p=0.1),
+                RandomBoxBlur(p=0.1),
+                RandomGamma(p=0.1),
+                RandomMotionBlur((2, 3), 0.1, 0.5, p=0.1),
+                RandomSaturation(p=0.1),
+                RandomGaussianNoise(p=0.1),
             )
 
-        elif type == 'extreme':
+        elif type == "extreme":
             self.transforms = nn.Sequential(
-                ColorJiggle(brightness= 0.5,contrast= 0.5,saturation= 0.5,hue= 0.5, p = 0.3),
+                ColorJiggle(
+                    brightness=0.5, contrast=0.5, saturation=0.5, hue=0.5, p=0.3
+                ),
                 # RandomBrightness(p = 0.3),
                 # RandomContrast(p = 0.3),
                 # RandomBoxBlur(p = 0.3),
                 # RandomGamma(p = 0.3),
-                RandomMotionBlur((2,3), 0.1, 0.5, p = 1),
-                RandomSaturation(p = 0.3),
-                RandomGaussianNoise(p = 0.3)
-        )
+                RandomMotionBlur((2, 3), 0.1, 0.5, p=1),
+                RandomSaturation(p=0.3),
+                RandomGaussianNoise(p=0.3),
+            )
 
     @torch.no_grad()  # disable gradients for effiency
     def forward(self, x: Tensor) -> Tensor:
-        norm = Normalize(mean(x, dim=(0, 2, 3)), std(x, dim=(0, 2, 3)))
-        x_out = norm(x)
+        # norm = Normalize(mean(x, dim=(0, 2, 3)), std(x, dim=(0, 2, 3)))
+        # x_out = norm(x)
         x_out = self.transforms(x)
         return x_out
-    
 
 
 # if __name__ == "__main__":
@@ -63,4 +74,4 @@ class DataAugmentation(nn.Module):
 #     output = model(input)
 #     print(type(output))
 #     tensor_to_image(input)
-    # cv2.imshow("output", output.numpy())
+# cv2.imshow("output", output.numpy())
