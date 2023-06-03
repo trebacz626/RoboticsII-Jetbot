@@ -7,6 +7,7 @@ from torchvision.transforms import ToTensor, Resize, RandomRotation, RandomPersp
     GaussianBlur, RandomAdjustSharpness, RandomAutocontrast, RandomEqualize
 
 from src.data.datamodule import LineFollowingDataModule
+from src.model.SqueezedSqueezeNet import SqueezedSqueezeNet
 from src.model.simple_cnn import SimpleCNN
 import argparse
 
@@ -37,6 +38,8 @@ def to_onnx(model: JetBotLightning):
 def get_model(backbone_name):
     if backbone_name == "SimpleCNN":
         backbone = SimpleCNN()
+    elif backbone_name == "SqueezeNet":
+        backbone = SqueezedSqueezeNet(num_classes=2)
     else:
         raise NotImplementedError(f"Backbone {backbone_name} not implemented")
     return JetBotLightning(backbone, lr=args.lr, max_epochs=args.epochs, lr_cycles=args.lr_cycles)
@@ -81,7 +84,7 @@ if __name__ == "__main__":
                              LearningRateMonitor(),
                          ],
                          )
-    trainer.tune(model, datamodule=data_module)
+    # trainer.tune(model, datamodule=data_module)
     trainer.fit(model, datamodule=data_module)
     trainer.test(model, datamodule=data_module)
     if args.onnx:
