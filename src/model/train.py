@@ -13,6 +13,7 @@ from src.model.SqueezedSqueezeNet import SqueezedSqueezeNet
 from src.model.simple_cnn import SimpleCNN
 from src.model.nvidia_model import NvidiaModel
 from src.model.mobilenet_small import MobileNetSmall
+from src.model.SqueezeNet import SqueezeNet
 import argparse
 
 from src.model.lightning_module import JetBotLightning
@@ -41,12 +42,14 @@ def to_onnx(model: JetBotLightning):
 def get_model(backbone_name):
     if backbone_name == "SimpleCNN":
         backbone = SimpleCNN()
-    elif backbone_name == "SqueezeNet":
+    elif backbone_name == "SqueezeNetCustom":
         backbone = SqueezedSqueezeNet(num_classes=2)
     elif backbone_name == "NvidiaModel":
         backbone =  NvidiaModel()
     elif backbone_name == "MobileNetSmall":
         backbone = MobileNetSmall()
+    elif backbone_name == "SqueezeNet":
+        backbone = SqueezeNet()
     else:
         raise NotImplementedError(f"Backbone {backbone_name} not implemented")
     return JetBotLightning(backbone, lr=args.lr, max_epochs=args.epochs, lr_cycles=args.lr_cycles)
