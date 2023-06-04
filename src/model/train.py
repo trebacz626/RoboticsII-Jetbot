@@ -11,6 +11,7 @@ sys.path.append(".")
 from src.data.datamodule import LineFollowingDataModule
 from src.model.SqueezedSqueezeNet import SqueezedSqueezeNet
 from src.model.simple_cnn import SimpleCNN
+from src.model.nvidia_model import NvidiaModel
 import argparse
 
 from src.model.lightning_module import JetBotLightning
@@ -22,7 +23,7 @@ parser.add_argument('--batch_size', type=int, default=32, help='batch size')
 parser.add_argument('--epochs', type=int, default=10, help='epochs')
 parser.add_argument('--lr', type=float, default=1e-3, help='learning rate')
 parser.add_argument('--seed', type=int, default=42, help='seed')
-parser.add_argument('--onnx', type=bool, default=False, help='onnx')
+parser.add_argument('--onnx', type=str, default="None", help='onnx')
 parser.add_argument('--resolution', type=int, default=64, help='resolution')
 parser.add_argument('--precision', type=int, default=16, help='precision')
 parser.add_argument('--lr_cycles', type=float, default=1, help='precision')
@@ -30,11 +31,9 @@ parser.add_argument('--transformation_probability', type=float, default=0.5, hel
 
 
 def to_onnx(model: JetBotLightning):
-    dummy_input = torch.randn(1, 3, 64, 64)
-    # predict dummy input
-    output = model.backbone(dummy_input)
+    dummy_input = torch.randn(1, 3, args.resolution, args.resolution)
     torch.onnx.export(model.backbone, dummy_input,
-                      f"{args.model}.onnx", verbose=True)
+                      f"{args.onnx}.onnx", verbose=True)
 
 
 def get_model(backbone_name):
@@ -42,6 +41,8 @@ def get_model(backbone_name):
         backbone = SimpleCNN()
     elif backbone_name == "SqueezeNet":
         backbone = SqueezedSqueezeNet(num_classes=2)
+    elif backbone_name == "NvidiaModel":
+        backbone =  NvidiaModel()
     else:
         raise NotImplementedError(f"Backbone {backbone_name} not implemented")
     return JetBotLightning(backbone, lr=args.lr, max_epochs=args.epochs, lr_cycles=args.lr_cycles)
@@ -80,7 +81,7 @@ if __name__ == "__main__":
                          callbacks=[
                              ModelCheckpoint(
                                  dirpath="./checkpoints",
-                                 filename="base-{epoch:02d}-{validation_loss:.2f}",
+                                 filename="{args.model}-{epoch:02d}-{validation_loss:.2f}",
                                  monitor="validation_loss",
                              ),
                              LearningRateMonitor(),
@@ -90,5 +91,5 @@ if __name__ == "__main__":
     # trainer.tune(model, datamodule=data_module)
     trainer.fit(model, datamodule=data_module)
     trainer.test(model, datamodule=data_module)
-    if args.onnx:
+    if args.onnx != "None":
         to_onnx(model)
