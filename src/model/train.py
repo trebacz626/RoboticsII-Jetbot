@@ -12,6 +12,7 @@ from src.data.datamodule import LineFollowingDataModule
 from src.model.SqueezedSqueezeNet import SqueezedSqueezeNet
 from src.model.simple_cnn import SimpleCNN
 from src.model.nvidia_model import NvidiaModel
+from src.model.mobilenet_small import MobileNetSmall
 import argparse
 
 from src.model.lightning_module import JetBotLightning
@@ -28,6 +29,7 @@ parser.add_argument('--resolution', type=int, default=64, help='resolution')
 parser.add_argument('--precision', type=int, default=16, help='precision')
 parser.add_argument('--lr_cycles', type=float, default=1, help='precision')
 parser.add_argument('--transformation_probability', type=float, default=0.5, help='precision')
+parser.add_argument('--checkpoint', type=str, default="None", help='checkpoint')
 
 
 def to_onnx(model: JetBotLightning):
@@ -43,6 +45,8 @@ def get_model(backbone_name):
         backbone = SqueezedSqueezeNet(num_classes=2)
     elif backbone_name == "NvidiaModel":
         backbone =  NvidiaModel()
+    elif backbone_name == "MobileNetSmall":
+        backbone = MobileNetSmall()
     else:
         raise NotImplementedError(f"Backbone {backbone_name} not implemented")
     return JetBotLightning(backbone, lr=args.lr, max_epochs=args.epochs, lr_cycles=args.lr_cycles)
@@ -73,6 +77,8 @@ if __name__ == "__main__":
                                           valid_transformations, batch_size=args.batch_size, num_workers=6)
     
     model = get_model(args.model)
+    if args.checkpoint != "None":
+        model = model.load_from_checkpoint(args.checkpoint)
     trainer = pl.Trainer(accelerator="auto",
                          precision=args.precision,
                          max_epochs=args.epochs, num_sanity_val_steps=2,
@@ -81,7 +87,7 @@ if __name__ == "__main__":
                          callbacks=[
                              ModelCheckpoint(
                                  dirpath="./checkpoints",
-                                 filename="{args.model}-{epoch:02d}-{validation_loss:.2f}",
+                                 filename=args.model+"-{epoch:02d}-{validation_loss:.2f}",
                                  monitor="validation_loss",
                              ),
                              LearningRateMonitor(),

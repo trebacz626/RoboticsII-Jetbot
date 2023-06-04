@@ -135,3 +135,4 @@ videos
 
 *wandb*
 *.ckpt
+*.onnx
