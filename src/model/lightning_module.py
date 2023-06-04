@@ -9,7 +9,6 @@ class JetBotLightning(pl.LightningModule):
         super().__init__()
         self.backbone = backbone
         self.criterion = nn.MSELoss()
-        self.mse = nn.MSELoss()
         self.mae = nn.L1Loss()
         self.lr = lr
         self.max_epochs = max_epochs
@@ -30,7 +29,7 @@ class JetBotLightning(pl.LightningModule):
         y_hat = self.backbone(x)
         loss = self.criterion(y_hat, y)
         mae = (self.mae(y_hat[0], y[0]), self.mae(y_hat[1], y[1]))
-        mse = (self.mse(y_hat[0], y[0]), self.mse(y_hat[1], y[1]))
+        mse = (self.criterion(y_hat[0], y[0]), self.criterion(y_hat[1], y[1]))
         self.log('validation_loss', loss)
         self.log('validation_mae_forward', mae[0])
         self.log('validation_mae_left', mae[1])
@@ -43,7 +42,7 @@ class JetBotLightning(pl.LightningModule):
         y_hat = self.backbone(x)
         loss = self.criterion(y_hat, y)
         mae = (self.mae(y_hat[0], y[0]), self.mae(y_hat[1], y[1]))
-        mse = (self.mse(y_hat[0], y[0]), self.mse(y_hat[1], y[1]))
+        mse = (self.criterion(y_hat[0], y[0]), self.criterion(y_hat[1], y[1]))
         self.log('test_loss', loss)
         self.log('test_mae_forward', mae[0])
         self.log('test_mae_left', mae[1])
