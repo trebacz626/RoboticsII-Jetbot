@@ -134,3 +134,4 @@ put_jetbot_dataset
 videos
 
 *wandb*
+*.ckpt
