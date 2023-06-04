@@ -1,11 +1,13 @@
 import pytorch_lightning as pl
-from pytorch_lightning.callbacks import ModelCheckpoint, LearningRateMonitor
+from pytorch_lightning.callbacks import ModelCheckpoint, LearningRateMonitor, EarlyStopping
 from pytorch_lightning.loggers import WandbLogger
 import torch
 import torchvision
 from torchvision.transforms import ToTensor, Resize, RandomRotation, RandomPerspective, ColorJitter, RandomApply, \
     GaussianBlur, RandomAdjustSharpness, RandomAutocontrast, RandomEqualize
 
+import sys
+sys.path.append(".")
 from src.data.datamodule import LineFollowingDataModule
 from src.model.SqueezedSqueezeNet import SqueezedSqueezeNet
 from src.model.simple_cnn import SimpleCNN
@@ -68,7 +70,7 @@ if __name__ == "__main__":
 
     data_module = LineFollowingDataModule("./dataset", train_run_ids, vaild_run_ids, train_transformations,
                                           valid_transformations, batch_size=args.batch_size, num_workers=6)
-
+    
     model = get_model(args.model)
     trainer = pl.Trainer(accelerator="auto",
                          precision=args.precision,
@@ -82,6 +84,7 @@ if __name__ == "__main__":
                                  monitor="validation_loss",
                              ),
                              LearningRateMonitor(),
+                             EarlyStopping(monitor="validation_loss", patience=3, verbose=True)
                          ],
                          )
     # trainer.tune(model, datamodule=data_module)
