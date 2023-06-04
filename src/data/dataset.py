@@ -7,6 +7,9 @@ from PIL import Image
 
 #create pl dataset that has image as input and 2 float values as target
 class LineFollowingDataset(torch.utils.data.Dataset):
+    def drop_negative_forward(self):
+        self.df = self.df[self.df["forward"] >= 0]
+    
     def __init__(self,root_folder,  run_ids:List[str], transformations=None):
         self.root_folder = root_folder
         self.run_ids = run_ids
@@ -21,6 +24,7 @@ class LineFollowingDataset(torch.utils.data.Dataset):
         self.df = pandas.concat(dfs.values())
         #reset index
         self.df = self.df.reset_index(drop=True)
+        self.drop_negative_forward()
 
     def __len__(self):
         return len(self.df)
