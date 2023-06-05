@@ -61,7 +61,7 @@ def main(csv_path: str, stream: bool):
 if __name__ == '__main__':
     parser = argparse.ArgumentParser(prog='Tool for debuggin our model')
     parser.add_argument('-f', '--csv_path', type=str, help='path to csv with drive data',
-                        default= "..\\put_jetbot_dataset\\dataset\\1652875851.3497071.csv")
+                        default= "..\\dataset\\1653043345.3415065.csv")
     parser.add_argument('-s', '--stream', action="store_true",
                         help='whether to stream video to the screen')
     args = parser.parse_args()

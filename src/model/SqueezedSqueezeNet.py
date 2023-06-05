@@ -13,19 +13,19 @@ class SqueezedSqueezeNet(nn.Module):
         if version == "1_0":
             self.features = nn.Sequential(
                 #nn.Conv2d(3, 16, kernel_size=5, stride=1),
-                nn.Conv2d(1, 16, kernel_size=5, stride=1),
+                nn.Conv2d(1, 8, kernel_size=5, stride=1),
                 nn.ReLU(inplace=True),
                 nn.MaxPool2d(kernel_size=3, stride=2, ceil_mode=True),
-                Fire(16, 8, 32, 32),
-                Fire(64, 8, 32, 32),
+                Fire(8, 4, 16, 16),
+                Fire(32, 4, 16, 16),
                 #Fire(128, 32, 128, 128),
                 nn.MaxPool2d(kernel_size=3, stride=2, ceil_mode=True),
-                Fire(64, 16, 64, 64),
-                Fire(128, 16, 64, 64),
+                Fire(32, 8, 32, 32),
+                Fire(64, 8, 32, 32),
                 #Fire(384, 48, 192, 192),
                 #Fire(384, 64, 256, 256),
                 nn.MaxPool2d(kernel_size=3, stride=2, ceil_mode=True),
-                Fire(128, 32, 128, 128),
+                Fire(64, 16, 64, 64),
             )
         elif version == "1_1":
             self.features = nn.Sequential(
@@ -56,7 +56,7 @@ class SqueezedSqueezeNet(nn.Module):
         # self.classifier = nn.Sequential(
         #     nn.Dropout(p=dropout), final_conv, nn.ReLU(inplace=True), nn.AdaptiveAvgPool2d((1, 1))
         # )
-        self.regression_head = nn.Linear(256 * 7 * 7 , 2)
+        self.regression_head = nn.Linear(128 * 7 * 7 , 2)
         self.tanh_ = nn.Tanh()
 
         for m in self.modules():

@@ -7,6 +7,7 @@ class AI:
     def __init__(self, config: dict):
         self.path = config['model']['path']
         self.img_size = config['model']['img_size']
+        self.grayscale = config['model']['grayscale']
         self.sess = rt.InferenceSession(self.path, providers=['TensorrtExecutionProvider', 'CUDAExecutionProvider', 'CPUExecutionProvider'])
  
         self.output_name = self.sess.get_outputs()[0].name
@@ -14,8 +15,17 @@ class AI:
 
     def preprocess(self, img: np.ndarray) -> np.ndarray:
         #print(img.shape)
-        img  = cv2.resize(img, (self.img_size, self.img_size)) # maybe this should be added to the config
-        img = cv2.cvtColor(img, cv2.COLOR_BGR2RGB).transpose(2, 0, 1)
+        if not self.grayscale:
+            img  = cv2.resize(img, (self.img_size, self.img_size)) # maybe this should be added to the config
+            img = cv2.cvtColor(img, cv2.COLOR_BGR2RGB).transpose(2, 0, 1)
+        else:
+            # I know we could at first resize then equalize but it is different than in our pipeline.
+            img = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
+            img = cv2.equalizeHist(img)
+            img  = cv2.resize(img, (self.img_size, self.img_size))
+            img = np.expand_dims(img, 0)# to have 1 channel
+
+        
         img = np.expand_dims(img, 0) / 255
         img = img.astype(np.float32)
         #print(img.min(), img.max())
@@ -34,7 +44,11 @@ class AI:
     def predict(self, img: np.ndarray) -> np.ndarray:
         inputs = self.preprocess(img)
         assert inputs.dtype == np.float32
-        assert inputs.shape == (1, 3, self.img_size, self.img_size)
+        if not self.grayscale:
+            assert inputs.shape == (1, 3, self.img_size, self.img_size)
+        else:
+            assert inputs.shape == (1, 1, self.img_size, self.img_size)
+
         
         detections = self.sess.run([self.output_name], {self.input_name: inputs})[0]
         outputs = self.postprocess(detections)

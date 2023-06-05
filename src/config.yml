@@ -1,6 +1,7 @@
 model:
-  path: "../random_not_trained_cnn.onnx"
+  path: "../SqueezeNet.onnx"
   img_size: 64
+  grayscale: True
 
 robot:
   max_speed: 0.22
