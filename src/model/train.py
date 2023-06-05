@@ -15,6 +15,7 @@ from src.model.nvidia_model import NvidiaModel
 from src.model.mobilenet_small import MobileNetSmall
 from src.model.SqueezeNet import SqueezeNet
 import argparse
+from src.model.augmentation import DataAugmentation
 
 from src.model.lightning_module import JetBotLightning
 
@@ -22,7 +23,7 @@ parser = argparse.ArgumentParser(description='Process model arguments.')
 parser.add_argument('--model', type=str,
                     default="SimpleCNN", help='model name')
 parser.add_argument('--batch_size', type=int, default=32, help='batch size')
-parser.add_argument('--epochs', type=int, default=10, help='epochs')
+parser.add_argument('--epochs', type=int, default=1, help='epochs')
 parser.add_argument('--lr', type=float, default=1e-3, help='learning rate')
 parser.add_argument('--seed', type=int, default=42, help='seed')
 parser.add_argument('--onnx', type=str, default="None", help='onnx')
@@ -63,22 +64,26 @@ if __name__ == "__main__":
     vaild_run_ids = ["1653043345.3415065",
                      "1653043428.8546412", "1653043549.5187616"]
 
-    train_transformations = torchvision.transforms.Compose(
-        [Resize((args.resolution, args.resolution)),
-         RandomRotation((-4,4)),
-         RandomPerspective(0.05, args.transformation_probability),
-         RandomApply([ColorJitter(brightness=0.1, contrast=0.1, saturation=0.1, hue=0.1)], p=args.transformation_probability),
-         RandomApply([GaussianBlur(3, sigma=(0.1, 2.0))], p=args.transformation_probability),
-         RandomAdjustSharpness(0.1, p=args.transformation_probability),
-         RandomAutocontrast(p=args.transformation_probability),
-         RandomEqualize(p=args.transformation_probability),
-         ToTensor()])
+    # train_transformations = torchvision.transforms.Compose(
+    #     [Resize((args.resolution, args.resolution)),
+    #      RandomRotation((-4,4)),
+    #      RandomPerspective(0.05, args.transformation_probability),
+    #      RandomApply([ColorJitter(brightness=0.1, contrast=0.1, saturation=0.1, hue=0.1)], p=args.transformation_probability),
+    #      RandomApply([GaussianBlur(3, sigma=(0.1, 2.0))], p=args.transformation_probability),
+    #      RandomAdjustSharpness(0.1, p=args.transformation_probability),
+    #      RandomAutocontrast(p=args.transformation_probability),
+    #      RandomEqualize(p=args.transformation_probability),
+    #      ToTensor()])
+
+    train_transformations = None
     valid_transformations = torchvision.transforms.Compose(
-        [Resize((args.resolution, args.resolution)), ToTensor()])
+        [Resize((args.resolution, args.resolution)), None])
 
     data_module = LineFollowingDataModule("./dataset", train_run_ids, vaild_run_ids, train_transformations,
-                                          valid_transformations, batch_size=args.batch_size, num_workers=6)
-    
+                                          valid_transformations, batch_size=args.batch_size, num_workers=0)
+    mean, sd = data_module.get_mean_and_std('train')
+    train_transformations = DataAugmentation(args.transformation_probability, (args.resolution, args.resolution), mean, sd, standarization = True)
+    data_module.train_transformations = train_transformations
     model = get_model(args.model)
     if args.checkpoint != "None":
         model = model.load_from_checkpoint(args.checkpoint)

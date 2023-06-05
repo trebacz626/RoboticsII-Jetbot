@@ -23,3 +23,24 @@ class LineFollowingDataModule(pl.LightningDataModule):
 
     def test_dataloader(self):
         return torch.utils.data.DataLoader(LineFollowingDataset(self.root_folder, self.valid_run_ids, self.valid_transformations), batch_size=self.batch_size, num_workers=self.num_workers, shuffle=False)
+    
+    def get_mean_and_std(self, set: str = 'train'):
+        if set == 'train':
+            dataloader =  self.train_dataloader()
+        elif set == 'val':
+            dataloader = self.val_dataloader()
+        elif set == 'test':
+            dataloader = self.test_dataloader()
+        channels_sum, channels_squared_sum, num_batches = 0, 0, 0
+        for data, _ in dataloader: 
+            # Mean over batch, height and width, but not over the channels
+            channels_sum += torch.mean(data, dim=[0, 2, 3])
+            channels_squared_sum += torch.mean(data**2, dim=[0, 2, 3])
+            num_batches += 1
+        
+        mean = channels_sum / num_batches
+
+        # std = sqrt(E[X^2] - (E[X])^2)
+        std = (channels_squared_sum / num_batches - mean ** 2) ** 0.5
+
+        return mean, std

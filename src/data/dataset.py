@@ -4,7 +4,7 @@ import pytorch_lightning as pl
 import torch
 import pandas
 from PIL import Image
-
+from torchvision.transforms import ToTensor
 
 class LineFollowingDataset(torch.utils.data.Dataset):
     def __init__(self, root_folder,  run_ids: List[str], transformations=None):
@@ -33,6 +33,7 @@ class LineFollowingDataset(torch.utils.data.Dataset):
         # load image with PIL formate image_id to dddd
         image = Image.open(os.path.join(
             self.root_folder, row["run_id"], f"{row['image_id']:04d}.jpg"))
+        image = ToTensor()(image)
         # apply transformations
         if self.transformations:
             image = self.transformations(image)
