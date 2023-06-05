@@ -132,3 +132,7 @@ dmypy.json
 
 put_jetbot_dataset
 videos
+
+.lr_find*
+checkpoints
+lightning_logs

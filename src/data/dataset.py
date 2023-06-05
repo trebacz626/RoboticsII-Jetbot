@@ -1,9 +1,12 @@
 import os
 from typing import List
+
+import pandas
 import pytorch_lightning as pl
 import torch
-import pandas
-from PIL import Image
+from PIL import Image, ImageOps
+from torchvision.transforms import functional
+
 
 #create pl dataset that has image as input and 2 float values as target
 class LineFollowingDataset(torch.utils.data.Dataset):
@@ -29,6 +32,9 @@ class LineFollowingDataset(torch.utils.data.Dataset):
         row = self.df.iloc[idx]
         #load image with PIL formate image_id to dddd
         image = Image.open(os.path.join(self.root_folder, row["run_id"], f"{row['image_id']:04d}.jpg"))
+        image = ImageOps.grayscale(image)
+        image = functional.equalize(image)
+
         #apply transformations
         if self.transformations:
             image = self.transformations(image)

@@ -1,21 +1,28 @@
-import pytorch_lightning as pl
-from pytorch_lightning.callbacks import ModelCheckpoint, LearningRateMonitor
-from pytorch_lightning.loggers import WandbLogger
-import torch
-import torchvision
-from torchvision.transforms import ToTensor, Resize, RandomRotation, RandomPerspective, ColorJitter, RandomApply, \
-    GaussianBlur, RandomAdjustSharpness, RandomAutocontrast, RandomEqualize
+import sys
 
-from src.data.datamodule import LineFollowingDataModule
-from src.model.SqueezedSqueezeNet import SqueezedSqueezeNet
-from src.model.simple_cnn import SimpleCNN
+sys.path.append("./")
+
 import argparse
 
+import pytorch_lightning as pl
+import torch
+import torchvision
+from pytorch_lightning.callbacks import LearningRateMonitor, ModelCheckpoint
+from pytorch_lightning.loggers import WandbLogger
+from torchvision.transforms import (ColorJitter, GaussianBlur,
+                                    RandomAdjustSharpness, RandomApply,
+                                    RandomAutocontrast, RandomEqualize,
+                                    RandomPerspective, RandomPosterize,
+                                    RandomRotation, Resize, ToTensor)
+
+from src.data.datamodule import LineFollowingDataModule
 from src.model.lightning_module import JetBotLightning
+from src.model.simple_cnn import SimpleCNN
+from src.model.SqueezedSqueezeNet import SqueezedSqueezeNet
 
 parser = argparse.ArgumentParser(description='Process model arguments.')
 parser.add_argument('--model', type=str,
-                    default="SimpleCNN", help='model name')
+                    default="SqueezeNet", help='model name')
 parser.add_argument('--batch_size', type=int, default=32, help='batch size')
 parser.add_argument('--epochs', type=int, default=10, help='epochs')
 parser.add_argument('--lr', type=float, default=1e-3, help='learning rate')
@@ -66,14 +73,14 @@ if __name__ == "__main__":
     valid_transformations = torchvision.transforms.Compose(
         [Resize((args.resolution, args.resolution)), ToTensor()])
 
-    data_module = LineFollowingDataModule("./dataset", train_run_ids, vaild_run_ids, train_transformations,
-                                          valid_transformations, batch_size=args.batch_size, num_workers=6)
+    data_module = LineFollowingDataModule("C:\\dataset", train_run_ids, vaild_run_ids, train_transformations,
+                                          valid_transformations, batch_size=args.batch_size, num_workers=0)
 
     model = get_model(args.model)
     trainer = pl.Trainer(accelerator="auto",
                          precision=args.precision,
                          max_epochs=args.epochs, num_sanity_val_steps=2,
-                         auto_lr_find=True, logger=WandbLogger(project="jetbot", name=args.model, config=args),
+                         auto_lr_find=True, # logger=WandbLogger(project="jetbot", name=args.model, config=args),
                          log_every_n_steps=1,
                          callbacks=[
                              ModelCheckpoint(
@@ -84,7 +91,7 @@ if __name__ == "__main__":
                              LearningRateMonitor(),
                          ],
                          )
-    # trainer.tune(model, datamodule=data_module)
+    trainer.tune(model, datamodule=data_module)
     trainer.fit(model, datamodule=data_module)
     trainer.test(model, datamodule=data_module)
     if args.onnx:
