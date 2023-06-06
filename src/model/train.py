@@ -23,7 +23,7 @@ parser = argparse.ArgumentParser(description='Process model arguments.')
 parser.add_argument('--model', type=str,
                     default="SimpleCNN", help='model name')
 parser.add_argument('--batch_size', type=int, default=32, help='batch size')
-parser.add_argument('--epochs', type=int, default=1, help='epochs')
+parser.add_argument('--epochs', type=int, default=15, help='epochs')
 parser.add_argument('--lr', type=float, default=1e-3, help='learning rate')
 parser.add_argument('--seed', type=int, default=42, help='seed')
 parser.add_argument('--onnx', type=str, default="None", help='onnx')
@@ -77,7 +77,7 @@ if __name__ == "__main__":
 
     train_transformations = None
     valid_transformations = torchvision.transforms.Compose(
-        [Resize((args.resolution, args.resolution)), None])
+        [Resize((args.resolution, args.resolution)), ToTensor()])
 
     data_module = LineFollowingDataModule("./dataset", train_run_ids, vaild_run_ids, train_transformations,
                                           valid_transformations, batch_size=args.batch_size, num_workers=0)
@@ -87,7 +87,7 @@ if __name__ == "__main__":
     model = get_model(args.model)
     if args.checkpoint != "None":
         model = model.load_from_checkpoint(args.checkpoint)
-    trainer = pl.Trainer(accelerator="auto",
+    trainer = pl.Trainer(acelerator="auto",
                          precision=args.precision,
                          max_epochs=args.epochs, num_sanity_val_steps=2,
                          auto_lr_find=True, logger=WandbLogger(project="jetbot", name=args.model, config=args),
