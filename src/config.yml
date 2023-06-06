@@ -1,5 +1,5 @@
 model:
-  path: "../random_not_trained_cnn.onnx"
+  path: "../models/SimpleCNN_alldata.onnx"
   img_size: 64
 
 robot:
