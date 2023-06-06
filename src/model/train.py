@@ -77,7 +77,7 @@ if __name__ == "__main__":
 
     train_transformations = None
     valid_transformations = torchvision.transforms.Compose(
-        [Resize((args.resolution, args.resolution)), None])
+        [Resize((args.resolution, args.resolution)), ToTensor()])
 
     data_module = LineFollowingDataModule("./dataset", train_run_ids, vaild_run_ids, train_transformations,
                                           valid_transformations, batch_size=args.batch_size, num_workers=0)
