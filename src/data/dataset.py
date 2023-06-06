@@ -33,7 +33,6 @@ class LineFollowingDataset(torch.utils.data.Dataset):
         # load image with PIL formate image_id to dddd
         image = Image.open(os.path.join(
             self.root_folder, row["run_id"], f"{row['image_id']:04d}.jpg"))
-        image = ToTensor()(image)
         # apply transformations
         if self.transformations:
             image = self.transformations(image)

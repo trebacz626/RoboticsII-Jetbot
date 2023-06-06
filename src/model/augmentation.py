@@ -15,6 +15,7 @@ from kornia.augmentation import (
 from kornia.utils import image_to_tensor
 from torch import Tensor
 from torchvision.transforms import ToTensor
+from PIL import Image
 
 
 class DataAugmentation(nn.Module):
@@ -39,7 +40,9 @@ class DataAugmentation(nn.Module):
         )
 
     @torch.no_grad()  # disable gradients for effiency
-    def forward(self, x: Tensor) -> Tensor:
+    def forward(self, x) -> Tensor:
+        if type(x) == Image:
+            x = image_to_tensor(x)
         if self.standarization:
             norm = Normalize(self.mean, self.sd)
             x_out = self.transforms(norm(x))

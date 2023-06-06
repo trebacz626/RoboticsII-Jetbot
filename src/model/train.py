@@ -87,7 +87,7 @@ if __name__ == "__main__":
     model = get_model(args.model)
     if args.checkpoint != "None":
         model = model.load_from_checkpoint(args.checkpoint)
-    trainer = pl.Trainer(acelerator="auto",
+    trainer = pl.Trainer(accelerator="auto",
                          precision=args.precision,
                          max_epochs=args.epochs, num_sanity_val_steps=2,
                          auto_lr_find=True, logger=WandbLogger(project="jetbot", name=args.model, config=args),
